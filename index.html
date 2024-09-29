@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4 Game</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            display: flex;
+            align-items: center;
+        }
+        .score-board {
+            margin-right: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            background-color: #0066cc;
+            padding: 15px;
+            border-radius: 15px;
+            width: 80vmin;
+            height: 68.57vmin; /* Maintains 7:6 aspect ratio */
+            max-width: 80vh;
+            max-height: 68.57vh;
+            box-sizing: border-box;
+        }
+        .cell {
+            aspect-ratio: 1 / 1;
+            background-color: white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .cell.blue { background-color: blue; }
+        .cell.red { background-color: red; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score-board">
+            <div>Blue: <span id="blue-score">0</span></div>
+            <div>Red: <span id="red-score">0</span></div>
+        </div>
+        <div class="game-board"></div>
+    </div>
+
+    <script>
+        let currentPlayer = 'blue';
+        const board = document.querySelector('.game-board');
+        const columns = 7;
+        const rows = 6;
+        let blueScore = 0;
+        let redScore = 0;
+
+        function initializeBoard() {
+            board.innerHTML = '';
+            for (let i = 0; i < rows * columns; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                board.appendChild(cell);
+            }
+        }
+
+        function resetGame() {
+            initializeBoard();
+            currentPlayer = 'blue';
+        }
+
+        initializeBoard();
+
+        board.addEventListener('click', (e) => {
+            if (e.target.classList.contains('cell')) {
+                const index = Array.from(board.children).indexOf(e.target);
+                const column = index % columns;
+                
+                for (let row = rows - 1; row >= 0; row--) {
+                    const cellIndex = row * columns + column;
+                    const cell = board.children[cellIndex];
+                    
+                    if (!cell.classList.contains('blue') && !cell.classList.contains('red')) {
+                        cell.classList.add(currentPlayer);
+                        if (checkForWin(row, column)) {
+                            if (currentPlayer === 'blue') {
+                                blueScore++;
+                                document.getElementById('blue-score').textContent = blueScore;
+                            } else {
+                                redScore++;
+                                document.getElementById('red-score').textContent = redScore;
+                            }
+                            setTimeout(() => {
+                                alert(`${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} wins!`);
+                                resetGame();
+                            }, 100);
+                        } else {
+                            currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+
+        function checkForWin(row, col) {
+            const directions = [
+                [0, 1],  // horizontal
+                [1, 0],  // vertical
+                [1, 1],  // diagonal down-right
+                [1, -1]  // diagonal down-left
+            ];
+
+            for (let [dx, dy] of directions) {
+                if (countConsecutive(row, col, dx, dy) + countConsecutive(row, col, -dx, -dy) - 1 >= 4) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function countConsecutive(row, col, dx, dy) {
+            const color = board.children[row * columns + col].classList.contains('blue') ? 'blue' : 'red';
+            let count = 0;
+            while (row >= 0 && row < rows && col >= 0 && col < columns &&
+                   board.children[row * columns + col].classList.contains(color)) {
+                count++;
+                row += dx;
+                col += dy;
+            }
+            return count;
+        }
+    </script>
+</body>
+</html>
